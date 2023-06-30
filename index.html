@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My TODO </title>
+</head>
+
+<style>
+    span {
+        margin-right: 20px;
+        padding: 10px;
+
+    }
+
+    body {
+        width: 50%;
+        margin: 100px auto;
+    }
+
+    input {
+        padding: 10px 20px;
+    }
+
+    #mainarea {
+        margin-top: 30px;
+        ;
+    }
+
+    #mainarea>div {
+        width: 90%;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        padding: 10px;
+        margin: 10px;
+        background-color: black;
+        color: white;
+        border-radius: 10px;
+    }
+
+    .add {
+        padding: 10px 20px;
+        text-transform: uppercase;
+    }
+
+    body>span {
+        text-transform: uppercase;
+    }
+</style>
+
+<body>
+    <span>title</span>
+    <input type="text" id="title" placeholder="Enter Title">
+    <span>description</span>
+    <input type="text" id="description" placeholder="Enter Description">
+    <button class="add" onclick="onPress()">add todo</button>
+
+    <div id="mainarea"></div>
+
+    <script>
+
+        function getdata() {
+            fetch('http://localhost:3001/todo',
+                {
+                    method: 'get'
+                }).then(response => response.json())
+                .then((result) => {
+                    for (let i = 0; i < result.length; i++) {
+                        var parentElement = document.getElementById('mainarea');
+                        var childElement = document.createElement('div');
+
+                        childElement.id = `todo-${result[i].id}`;
+                        var grandchild1 = document.createElement('span');
+                        grandchild1.innerHTML = result[i].title;
+                        var grandchild2 = document.createElement('span');
+                        grandchild2.innerHTML = result[i].description;
+                        var grandchild3 = document.createElement('button');
+                        grandchild3.innerHTML = 'delete';
+                        grandchild3.setAttribute('onclick', 'deletetodo(' + result[i].id + ')')
+
+                        var grandchild4 = document.createElement('button');
+                        grandchild4.innerHTML = 'update';
+                        grandchild4.setAttribute('onclick', 'updatetodo(' + result[i].id + ')')
+
+                        childElement.appendChild(grandchild1)
+                        childElement.appendChild(grandchild2)
+                        childElement.appendChild(grandchild3)
+                        childElement.appendChild(grandchild4)
+
+                        parentElement.appendChild(childElement);
+                    }
+                })
+        }
+
+        function onPress() {
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            console.log(title)
+            console.log(description)
+
+            fetch('http://localhost:3001/todo', {
+                method: 'post',
+                body: JSON.stringify({
+                    title: title,
+                    description: description
+                }),
+                headers: {
+                    "content-type": "application/json"
+                }
+            })
+                .then(response => response.json())
+                .then((result) => {
+                    var parentElement = document.getElementById('mainarea');
+                    var childElement = document.createElement('div');
+                    childElement.id = `todo-${result.id}`
+                    var grandchild1 = document.createElement('span');
+                    grandchild1.innerHTML = result.title;
+                    var grandchild2 = document.createElement('span');
+                    grandchild2.innerHTML = result.description;
+                    var grandchild3 = document.createElement('button');
+                    grandchild3.innerHTML = 'delete';
+                    grandchild3.setAttribute('onclick', 'deletetodo(' + result.id + ')')
+                    var grandchild4 = document.createElement('button');
+                    grandchild4.innerHTML = 'update';
+                    grandchild4.setAttribute('onclick', 'updatetodo(' + result.id + ')')
+
+
+
+
+                    childElement.appendChild(grandchild1)
+                    childElement.appendChild(grandchild2)
+                    childElement.appendChild(grandchild3)
+                    childElement.appendChild(grandchild4)
+
+                    parentElement.appendChild(childElement);
+                })
+        }
+        getdata();
+
+
+
+        function deletetodo(id) {
+            fetch(`http://localhost:3001/todo/${id}`, { method: 'delete' })
+                .then(() => {
+                    let deleteElement = document.getElementById(`todo-${id}`)
+                    deleteElement.remove();
+                })
+        }
+
+        function updatetodo(id) {
+            var title = prompt("Enter Updating title : ");
+            var description = prompt("Enter updating description : ")
+            fetch(`http://localhost:3001/todo/${id}`, {
+                method: "put",
+                body: JSON.stringify({
+                    title: title,
+                    description: description
+                }),
+                headers: {
+                    "content-type": "application/json"
+                }
+            })
+                .then(response => response.json())
+                .then((result) => {
+                    let parentElement = document.getElementById(`todo-${id}`)
+                    let childElement = parentElement.getElementsByTagName('span');
+                    childElement[0].innerHTML=result.title;
+                    childElement[1].innerHTML=result.description;
+                })
+        }
+
+    </script>
+</body>
+
+</html>
